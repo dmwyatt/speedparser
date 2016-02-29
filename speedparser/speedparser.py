@@ -615,12 +615,21 @@ class SpeedParser(object):
 
     def __init__(self, content, cleaner=default_cleaner, unix_timestamp=False, encoding=None):
         self.cleaner = cleaner
-        self.xmlns, content = strip_namespace(content)
+        parser = etree.XMLParser(recover=True)
         self.unix_timestamp = unix_timestamp
+
+        if isinstance(content, str):
+            self.xmlns, content = strip_namespace(content)
+
+        else:
+            tree = etree.parse(content)
+            self.xmlns, content = strip_namespace(etree.tostring(tree.getroot()))
+
         if self.xmlns and '#' in self.xmlns:
             self.xmlns = self.xmlns.strip('#')
-        parser = etree.XMLParser(recover=True)
+
         tree = etree.fromstring(content, parser=parser)
+
         if isinstance(tree, etree._ElementTree):
             self.tree = tree
             self.root = tree.getroot()
